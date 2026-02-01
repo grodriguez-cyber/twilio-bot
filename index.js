@@ -102,11 +102,6 @@ app.post("/whatsapp", (req, res) => {
     case 0:
       reply = `👋 Hola, soy el bot de Reporte Ciudadano.
 
-Te haré 3 preguntas:
-Tipo de reporte
-Ubicación
-Detalle
-
 1️⃣ Continuar
 2️⃣ Salir`;
       user.step = 1;
