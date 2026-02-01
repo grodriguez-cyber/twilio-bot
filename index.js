@@ -144,7 +144,7 @@ const comando = msg?.toLowerCase();
 const reinicio = ["inicio", "reiniciar", "empezar"]; // Se pueden añadir más si gustan
 const salir = ["salir", "cancelar", "terminar"];
 
-if (comando === inicio) {
+if (comando === reinicio) {
   sessions[from] = { step: 1 };
   reply = "🔄 El proceso se reinició. Escribe cualquier mensaje para comenzar.";
   
