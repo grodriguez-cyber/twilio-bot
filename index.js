@@ -7,265 +7,263 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
 const sessions = {};
 
-// ===================
-// CATEGORÍAS (5)
-// ===================
+// =======================
+// CONFIGURACIÓN
+// =======================
+
 const categorias = {
-"1": "🕳️ Bache",
-"2": "💡 Alumbrado",
-"3": "💧 Agua potable",
-"4": "🌳 Arbolado",
-"5": "🚧 Obra pública"
+  "1": "🕳️ Bache",
+  "2": "💡 Alumbrado",
+  "3": "💧 Agua potable",
+  "4": "🌳 Arbolado",
+  "5": "🚧 Obra pública"
 };
 
-// ===================
-// DETALLES POR TIPO
-// ===================
 const detallesPorCategoria = {
-"🕳️ Bache": [
-  "Leve (se puede esquivar)",
-  "Media (daña si no lo ves)",
-  "Alta (muy peligroso)"
-],
-"💡 Alumbrado": [
-  "No prende",
-  "Dañado",
-  "Prendido durante el día"
-],
-"💧 Agua potable": [
-  "Goteo constante",
-  "Fuga considerable",
-  "Fuga con ruido"
-],
-"🌳 Arbolado": [
-  "Rama caída",
-  "Bloquea el paso",
-  "Riesgo de caer"
-],
-"🚧 Obra pública": [
-  "Obstrucción",
-  "Material suelto",
-  "Daño visible"
-]
+  "🕳️ Bache": {
+    pregunta: "🕳️ ¿Qué tan urgente es el bache?",
+    opciones: {
+      "1": "Leve (se puede esquivar)",
+      "2": "Media (daña si no lo ves)",
+      "3": "Alta (muy peligroso)"
+    }
+  },
+  "💡 Alumbrado": {
+    pregunta: "💡 ¿Qué ocurre con el alumbrado?",
+    opciones: {
+      "1": "No enciende",
+      "2": "Está dañado",
+      "3": "Permanece encendido de día"
+    }
+  },
+  "💧 Agua potable": {
+    pregunta: "💧 ¿Cómo es el problema del agua?",
+    opciones: {
+      "1": "Goteo constante",
+      "2": "Fuga considerable",
+      "3": "Sin suministro"
+    }
+  },
+  "🌳 Arbolado": {
+    pregunta: "🌳 ¿Qué situación presenta el árbol?",
+    opciones: {
+      "1": "Rama caída",
+      "2": "Bloquea el paso",
+      "3": "Riesgo de caer"
+    }
+  },
+  "🚧 Obra pública": {
+    pregunta: "🚧 ¿Cuál es el problema?",
+    opciones: {
+      "1": "Obra abandonada",
+      "2": "Material obstruyendo",
+      "3": "Daños a vialidad"
+    }
+  }
 };
 
-// ===================
+// =======================
 // ENDPOINT
-// ===================
+// =======================
+
 app.post("/whatsapp", (req, res) => {
-const from = req.body.From;
-const msg = req.body.Body?.trim();
-const lat = req.body.Latitude;
-const lng = req.body.Longitude;
-const media = req.body.MediaUrl0;
+  const from = req.body.From;
+  const msg = req.body.Body?.trim();
+  const lat = req.body.Latitude;
+  const lng = req.body.Longitude;
 
-if (!sessions[from]) sessions[from] = { step: 0 };
-const user = sessions[from];
+  if (!sessions[from]) sessions[from] = { step: 0 };
+  const user = sessions[from];
+  let reply = "";
 
-const comando = msg?.toLowerCase();
-const twiml = new MessagingResponse();
-let reply = "";
+  // =======================
+  // COMANDOS GLOBALES
+  // =======================
+  const cmd = msg?.toLowerCase();
 
-// ===================
-// COMANDOS GLOBALES
-// ===================
-if (["inicio", "reiniciar"].includes(comando)) {
-  sessions[from] = { step: 0 };
-  twiml.message("🔄 Proceso reiniciado.");
-  return res.type("text/xml").send(twiml.toString());
-}
+  if (cmd === "inicio") {
+    sessions[from] = { step: 0 };
+    reply = "🔄 Proceso reiniciado.\nEscribe cualquier mensaje para comenzar.";
+    return send(res, reply);
+  }
 
-if (["salir", "cancelar"].includes(comando)) {
-  delete sessions[from];
-  twiml.message("👋 Proceso cancelado.");
-  return res.type("text/xml").send(twiml.toString());
-}
+  if (cmd === "salir") {
+    delete sessions[from];
+    reply = "👋 Proceso cancelado. Escribe *inicio* para comenzar de nuevo.";
+    return send(res, reply);
+  }
 
-// ===================
-// FLUJO
-// ===================
-switch (user.step) {
+  // =======================
+  // FLUJO PRINCIPAL
+  // =======================
+  switch (user.step) {
 
-  // STATE 0 — WELCOME
-  case 0:
-    reply = `👋 Hola, soy el bot de *Reporte Ciudadano del Ayuntamiento de Xalapa*.
+    // STATE 0 — WELCOME
+    case 0:
+      reply = `👋 Hola, soy el bot de Reporte Ciudadano.
 
 Te haré 3 preguntas:
-Tipo de reporte
-Ubicación
-Detalle
+1️⃣ Tipo de reporte
+2️⃣ Ubicación
+3️⃣ Detalle
 
 1️⃣ Continuar
 2️⃣ Salir`;
-    user.step = 1;
-    break;
-
-  // STATE 1 — CONTINUE
-  case 1:
-    if (msg !== "1") {
-      delete sessions[from];
-      reply = "👋 Proceso cancelado.";
+      user.step = 1;
       break;
-    }
 
-    reply = `📋 ¿Qué deseas reportar?
+    // STATE 1 — CATEGORY
+    case 1:
+      if (msg !== "1") {
+        reply = "❌ Escribe *1* para continuar o *SALIR*.";
+        break;
+      }
+
+      reply = `📋 ¿Qué deseas reportar?
 
 1️⃣ Bache
 2️⃣ Alumbrado
 3️⃣ Agua potable
 4️⃣ Arbolado
 5️⃣ Obra pública`;
-
-    user.step = 2;
-    break;
-
-  // STATE 2 — CATEGORY
-  case 2:
-    if (!categorias[msg]) {
-      reply = "❌ Responde con un número del 1 al 5.";
+      user.step = 2;
       break;
-    }
 
-    user.categoria = categorias[msg];
-    reply = `📍 Ahora envía tu ubicación.
+    // STATE 2 — CATEGORY SELECT
+    case 2:
+      if (!categorias[msg]) {
+        reply = "❌ Selecciona un número del 1 al 5.";
+        break;
+      }
 
-Puedes:
-📎 Enviar ubicación GPS
-✍️ O escribir dirección y referencias`;
-    user.step = 3;
-    break;
-
-  // STATE 3 — LOCATION
-  case 3:
-    if (lat && lng) {
-      user.ubicacion = {
-        tipo: "GPS",
-        lat,
-        lng
-      };
-    } else if (msg) {
-      user.ubicacion = {
-        tipo: "TEXTO",
-        descripcion: msg
-      };
-    } else {
-      reply = "⚠️ Envía la ubicación o escribe la dirección.";
+      user.categoria = categorias[msg];
+      reply = "📍 Envía tu ubicación actual usando el botón 📎 → Ubicación.";
+      user.step = 3;
       break;
-    }
 
-    const opciones = detallesPorCategoria[user.categoria]
-      .map((o, i) => `${i + 1}️⃣ ${o}`)
-      .join("\n");
+    // STATE 3 — LOCATION
+    case 3:
+      if (!lat || !lng) {
+        reply = "⚠️ Necesito la ubicación GPS. Usa el botón 📍.";
+        break;
+      }
 
-    reply = `📝 ${user.categoria}
-Selecciona el detalle:
+      user.lat = lat;
+      user.lng = lng;
+
+      // 👉 AQUÍ SE ENVIABA NADA ANTES — YA CORREGIDO
+      const data = detallesPorCategoria[user.categoria];
+      const opciones = Object.entries(data.opciones)
+        .map(([k, v]) => `${k}️⃣ ${v}`)
+        .join("\n");
+
+      reply = `${data.pregunta}
 
 ${opciones}`;
-
-    user.step = 4;
-    break;
-
-  // STATE 4 — DETAIL
-  case 4:
-    const detalle = detallesPorCategoria[user.categoria][msg - 1];
-    if (!detalle) {
-      reply = "❌ Selecciona una opción válida.";
+      user.step = 4;
       break;
-    }
 
-    user.detalle = detalle;
-    reply = `📸 ¿Deseas enviar una foto?
+    // STATE 4 — DETAIL
+    case 4:
+      const opcionesDetalle = detallesPorCategoria[user.categoria].opciones;
+      if (!opcionesDetalle[msg]) {
+        reply = "❌ Selecciona una opción válida.";
+        break;
+      }
+
+      user.detalle = opcionesDetalle[msg];
+
+      reply = `📸 ¿Deseas enviar una foto?
 
 1️⃣ Enviar foto
 2️⃣ Omitir`;
-    user.step = 5;
-    break;
-
-  // STATE 5 — PHOTO DECISION
-  case 5:
-    if (msg === "1") {
-      reply = "📸 Envía la foto ahora o escribe *omitir*.";
-      user.step = 6;
+      user.step = 5;
       break;
-    }
 
-    if (msg === "2") {
-      user.foto = false;
-      user.step = 7;
-      break;
-    }
+    // STATE 5 — PHOTO
+    case 5:
+      if (msg === "1") {
+        reply = "📷 Envía la foto ahora o escribe *OMITIR*.";
+        user.step = 6;
+        break;
+      }
 
-    reply = "❌ Responde 1 o 2.";
-    break;
+      if (msg === "2") {
+        user.foto = false;
 
-  // STATE 6 — WAIT PHOTO
-  case 6:
-    if (media) {
-      user.foto = media;
-    } else {
-      user.foto = false;
-    }
-    user.step = 7;
-    break;
-
-  // STATE 7 — CONTACT
-  case 7:
-    reply = `👤 ¿Deseas dejar datos para seguimiento?
+        // 👉 AQUÍ ESTABA EL BLOQUEO — YA CORREGIDO
+        reply = `👤 ¿Deseas dejar datos para seguimiento?
 
 1️⃣ Sí
 2️⃣ No (anónimo)`;
-    user.step = 8;
-    break;
+        user.step = 7;
+        break;
+      }
 
-  // STATE 8 — CONFIRM
-case 8:
-    user.anonimo = msg === "2";
+      reply = "❌ Responde 1 o 2.";
+      break;
 
-    const ubicacionTexto =
-      user.ubicacion.tipo === "GPS"
-        ? `https://maps.google.com?q=${user.ubicacion.lat},${user.ubicacion.lng}`
-        : user.ubicacion.descripcion;
+    // STATE 6 — WAIT PHOTO
+    case 6:
+      if (req.body.NumMedia > 0) {
+        user.foto = true;
+      }
+      reply = `👤 ¿Deseas dejar datos para seguimiento?
 
-    reply = `📋 *Resumen del reporte*
+1️⃣ Sí
+2️⃣ No (anónimo)`;
+      user.step = 7;
+      break;
 
-Tipo: ${user.categoria}
-Ubicación: ${ubicacionTexto}
-Detalle: ${user.detalle}
-Foto: ${user.foto ? "Sí" : "No"}
-Contacto: ${user.anonimo ? "Anónimo" : "Sí"}
+    // STATE 7 — CONTACT
+    case 7:
+      user.anonimo = msg === "2";
+
+      reply = `📋 *Resumen del reporte*
+
+📌 Tipo: ${user.categoria}
+📍 Ubicación: https://maps.google.com/?q=${user.lat},${user.lng}
+📝 Detalle: ${user.detalle}
+📷 Foto: ${user.foto ? "Sí" : "No"}
 
 1️⃣ Confirmar
 2️⃣ Cancelar`;
-
-    user.step = 9;
-    break;
-
-  // STATE 9 — FOLIO
-  case 9:
-    if (msg !== "1") {
-      delete sessions[from];
-      reply = "❌ Reporte cancelado.";
+      user.step = 8;
       break;
-    }
 
-    const folio = `XAL-${Date.now()}`;
-    reply = `✅ Reporte registrado correctamente.
+    // STATE 8 — CONFIRM
+    case 8:
+      if (msg === "1") {
+        const folio = `XAL-${Date.now()}`;
+        reply = `✅ Reporte enviado correctamente.
 
 🆔 Folio: ${folio}
 
 Gracias por tu reporte.
-Escribe *inicio* para hacer otro.`;
+Escribe *INICIO* para crear otro.`;
+        delete sessions[from];
+        break;
+      }
 
-    delete sessions[from];
-    break;
+      reply = "❌ Proceso cancelado. Escribe *INICIO* para comenzar.";
+      delete sessions[from];
+      break;
 
-  default:
-    delete sessions[from];
-    reply = "⚠️ Error. Escribe *inicio*.";
-}
+    default:
+      reply = "⚠️ Error inesperado. Escribe *INICIO*.";
+      delete sessions[from];
+  }
 
-twiml.message(reply);
-res.type("text/xml").send(twiml.toString());
+  send(res, reply);
 });
+
+// =======================
+// HELPER
+// =======================
+function send(res, text) {
+  const twiml = new MessagingResponse();
+  twiml.message(text);
+  res.type("text/xml").send(twiml.toString());
+}
 
 app.listen(process.env.PORT || 3000);
