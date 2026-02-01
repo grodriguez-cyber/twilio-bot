@@ -242,6 +242,14 @@ case 7:
   reply = "❌ Selecciona 1, 2 o 3.";
   break;
 
+  case 7.1:
+  user.nombre = msg;
+  user.telefono = req.body.From.replace("whatsapp:", "");
+  user.anonimo = false;
+  user.step = 8;
+  break;
+
+
 
 // STATE 8 — CONFIRM
 case 8:
