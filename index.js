@@ -13,19 +13,20 @@ const validarCorreo = c => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(c);
 const validarTelefono = t => /^[0-9]{8,15}$/.test(t);
 
 const tiposIncidencia = {
-"1": "Incendio",
-"2": "Bache",
-"3": "Luminaria",
-"4": "Basura acumulada",
-"5": "Fuga de agua",
-"6": "Corto eléctrico",
-"7": "Semáforo dañado",
-"8": "Ruido excesivo",
-"9": "Animal en peligro",
-"10": "Sospecha de delito",
-"11": "Choque de vehículos",
-"12": "Árbol caído"
+  "1": "🔥 Incendio",
+  "2": "🕳️ Bache",
+  "3": "💡 Luminaria",
+  "4": "🗑️ Basura acumulada",
+  "5": "💧 Fuga de agua",
+  "6": "⚡ Corto eléctrico",
+  "7": "🚦 Semáforo dañado",
+  "8": "🔊 Ruido excesivo",
+  "9": "🐕 Animal en peligro",
+  "10": "🚨 Sospecha de delito",
+  "11": "🚗 Choque de vehículos",
+  "12": "🌳 Árbol caído"
 };
+
 
 
 app.get("/", (req, res) => res.send("OK"));
@@ -63,19 +64,22 @@ switch (user.step) {
       reply = "⚠️ Por ahora solo está disponible el alta de incidencias.\nEscribe *1*.";
       break;
     }
-    reply = `📋 Tipo de incidencia:
-1️⃣ Incendio
-2️⃣ Bache
-3️⃣ Luminaria
-4️⃣ Basura
-5️⃣ Fuga de agua
-6️⃣ Corto eléctrico
-7️⃣ Semáforo dañado
-8️⃣ Ruido excesivo
-9️⃣ Animal en peligro
-🔟 Sospecha de delito
-1️⃣1️⃣ Choque
-1️⃣2️⃣ Árbol caído`;
+    reply = `📋 Selecciona el tipo de incidencia:
+
+🔥 1. Incendio  
+🕳️ 2. Bache  
+💡 3. Luminaria  
+🗑️ 4. Basura acumulada  
+💧 5. Fuga de agua  
+⚡ 6. Corto eléctrico  
+🚦 7. Semáforo dañado  
+🔊 8. Ruido excesivo  
+🐕 9. Animal en peligro  
+🚨 10. Sospecha de delito  
+🚗 11. Choque de vehículos  
+🌳 12. Árbol caído  
+
+Responde con el número.`;
   user.step = 3;
   break;
 
