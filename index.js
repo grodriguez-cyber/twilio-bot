@@ -134,10 +134,12 @@ const msg = req.body.Body?.trim();
 const lat = req.body.Latitude;
 const lng = req.body.Longitude;
 
+
 if (!sessions[from]) sessions[from] = { step: 1 };
 
 const user = sessions[from];
 let reply = "";
+const mapaUrl = `https://www.google.com/maps?q=${user.lat},${user.lng}`;
 
 // 🔴 COMANDOS GLOBALES
 const comando = msg?.toLowerCase();
@@ -216,16 +218,6 @@ if (!validarNombre(msg)) {
   break;
 }
 user.nombre = msg;
-reply = "📧 Escribe tu correo:";
-user.step = 5;
-break;
-
-case 5:
-if (!validarCorreo(msg)) {
-  reply = "❌ Correo inválido.";
-  break;
-}
-user.correo = msg;
 reply = "📱 Escribe tu teléfono:";
 user.step = 6;
 break;
@@ -334,8 +326,22 @@ if (user.editingField === "tipo") {
 
 user.editingField = null;
 user.awaitingDetalle = false;
+
+reply = `📋 *Confirma tus datos*
+
+1️⃣ Tipo: ${user.tipo}
+2️⃣ Nombre: ${user.nombre}
+3️⃣ Correo: ${user.correo}
+4️⃣ Teléfono: ${user.telefono}
+5️⃣ Ubicación: ${mapaUrl}
+6️⃣ Detalle: ${user.descripcion}
+
+1️⃣ Confirmar  
+2️⃣ Modificar datos`;
+
 user.step = 9;
 break;
+
 
 case 12:
   // Si NO estamos esperando detalle, volver a confirmación
@@ -346,7 +352,7 @@ case 12:
 2️⃣ Nombre: ${user.nombre}
 3️⃣ Correo: ${user.correo}
 4️⃣ Teléfono: ${user.telefono}
-5️⃣ Ubicación
+5️⃣ Ubicación: ${mapaUrl}
 6️⃣ Detalle: ${user.descripcion}
 
 1️⃣ Confirmar  
@@ -373,7 +379,7 @@ case 12:
 2️⃣ Nombre: ${user.nombre}
 3️⃣ Correo: ${user.correo}
 4️⃣ Teléfono: ${user.telefono}
-5️⃣ Ubicación
+5️⃣ Ubicación: ${mapaUrl}
 6️⃣ Detalle: ${user.descripcion}
 
 1️⃣ Confirmar  
