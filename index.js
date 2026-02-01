@@ -247,27 +247,22 @@ if (!lat || !lng) {
 }
 user.lat = lat;
 user.lng = lng;
-reply = "📝 Describe el problema:";
-user.step = 8;
-break;
+const data = descripcionesPorTipo[user.tipo];
 
-case 8:
-  const data = descripcionesPorTipo[user.tipo];
+let opcionesTexto = Object.entries(data.opciones)
+  .map(([k, v]) => `${k}️⃣ ${v}`)
+  .join("\n");
 
-  let opcionesTexto = Object.entries(data.opciones)
-    .map(([k, v]) => `${k}️⃣ ${v}`)
-    .join("\n");
-
-  reply = `${data.pregunta}
+reply = `${data.pregunta}
 
 ${opcionesTexto}
 
 Responde con el número.`;
-    
+
 user.awaitingDetalle = true;
 user.step = 12;
-  break;
 
+break;
 
 case 9:
 if (msg === "1") {
