@@ -144,23 +144,20 @@ const comando = msg?.toLowerCase();
 const reinicio = ["inicio", "reiniciar", "empezar"]; // Se pueden añadir más si gustan
 const salir = ["salir", "cancelar", "terminar"];
 
-if (comando === reinicio) {
+if (reinicio.includes(comando)) {
   sessions[from] = { step: 1 };
-  reply = "🔄 El proceso se reinició. Escribe cualquier mensaje para comenzar.";
-  
   const twiml = new MessagingResponse();
-  twiml.message(reply);
+  twiml.message("🔄 El proceso se reinició. Escribe cualquier mensaje para comenzar.");
   return res.type("text/xml").send(twiml.toString());
 }
 
-if (comando === salir) {
+if (salir.includes(comando)) {
   delete sessions[from];
-  reply = "👋 Proceso cancelado. Si deseas iniciar nuevamente, escribe *inicio*.";
-
   const twiml = new MessagingResponse();
-  twiml.message(reply);
+  twiml.message("👋 Proceso cancelado. Si deseas iniciar nuevamente, escribe *inicio*.");
   return res.type("text/xml").send(twiml.toString());
 }
+
 
 
 
