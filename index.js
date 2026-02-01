@@ -5,6 +5,10 @@ const { MessagingResponse } = require("twilio").twiml;
 const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
 
+app.get("/", (req, res) => {
+  res.status(200).send("OK");
+});
+
 app.post("/whatsapp", (req, res) => {
   const msg = req.body.Body;
   const from = req.body.From;
