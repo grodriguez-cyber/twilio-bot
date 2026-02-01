@@ -103,9 +103,9 @@ app.post("/whatsapp", (req, res) => {
       reply = `👋 Hola, soy el bot de Reporte Ciudadano.
 
 Te haré 3 preguntas:
-1️⃣ Tipo de reporte
-2️⃣ Ubicación
-3️⃣ Detalle
+Tipo de reporte
+Ubicación
+Detalle
 
 1️⃣ Continuar
 2️⃣ Salir`;
@@ -151,7 +151,6 @@ Te haré 3 preguntas:
       user.lat = lat;
       user.lng = lng;
 
-      // 👉 AQUÍ SE ENVIABA NADA ANTES — YA CORREGIDO
       const data = detallesPorCategoria[user.categoria];
       const opciones = Object.entries(data.opciones)
         .map(([k, v]) => `${k}️⃣ ${v}`)
@@ -190,18 +189,12 @@ ${opciones}`;
 
       if (msg === "2") {
         user.foto = false;
-
-        // 👉 AQUÍ ESTABA EL BLOQUEO — YA CORREGIDO
-        reply = `¿Deseas dejar datos para seguimiento?
-
-1️⃣ Usar mi número de WhatsApp
-2️⃣ Agregar nombre (opcional)
-3️⃣ No (anónimo)`;
+        reply = contactoPregunta();
         user.step = 7;
         break;
       }
 
-      reply = "❌ Responde 1, 2 o 3.";
+      reply = "❌ Responde 1 o 2.";
       break;
 
     // STATE 6 — WAIT PHOTO
@@ -209,53 +202,51 @@ ${opciones}`;
       if (req.body.NumMedia > 0) {
         user.foto = true;
       }
-      reply = `¿Deseas dejar datos para seguimiento?
-
-1️⃣ Usar mi número de WhatsApp
-2️⃣ Agregar nombre (opcional)
-3️⃣ No (anónimo)
-`;
+      reply = contactoPregunta();
       user.step = 7;
       break;
 
-case 7:
-  if (msg === "1") {
-    user.anonimo = false;
-    user.telefono = req.body.From.replace("whatsapp:", "");
-    user.nombre = "No proporcionado";
-    user.step = 8;
-    break;
-  }
+    // STATE 7 — CONTACT
+    case 7:
+      if (msg === "1") {
+        user.anonimo = false;
+        user.telefono = from.replace("whatsapp:", "");
+        user.nombre = "No proporcionado";
+        reply = resumen(user);
+        user.step = 8;
+        break;
+      }
 
-  if (msg === "2") {
-    reply = "✍️ Escribe tu nombre:";
-    user.step = 7.1; // nuevo estado
-    break;
-  }
+      if (msg === "2") {
+        reply = "✍️ Escribe tu nombre:";
+        user.step = 7.1;
+        break;
+      }
 
-  if (msg === "3") {
-    user.anonimo = true;
-    user.step = 8;
-    break;
-  }
+      if (msg === "3") {
+        user.anonimo = true;
+        reply = resumen(user);
+        user.step = 8;
+        break;
+      }
 
-  reply = "❌ Selecciona 1, 2 o 3.";
-  break;
+      reply = "❌ Selecciona 1, 2 o 3.";
+      break;
 
-  case 7.1:
-  user.nombre = msg;
-  user.telefono = req.body.From.replace("whatsapp:", "");
-  user.anonimo = false;
-  user.step = 8;
-  break;
+    // STATE 7.1 — NAME
+    case 7.1:
+      user.nombre = msg;
+      user.telefono = from.replace("whatsapp:", "");
+      user.anonimo = false;
+      reply = resumen(user);
+      user.step = 8;
+      break;
 
-
-
-// STATE 8 — CONFIRM
-case 8:
-    if (msg === "1") {
-      const folio = `XAL-${Date.now()}`;
-      reply = `✅ Reporte enviado correctamente.
+    // STATE 8 — CONFIRM
+    case 8:
+      if (msg === "1") {
+        const folio = `XAL-${Date.now()}`;
+        reply = `✅ Reporte enviado correctamente.
 
 🆔 Folio: ${folio}
 
@@ -278,8 +269,29 @@ Escribe *INICIO* para crear otro.`;
 });
 
 // =======================
-// HELPER
+// HELPERS
 // =======================
+function contactoPregunta() {
+  return `¿Deseas dejar datos para seguimiento?
+
+1️⃣ Usar mi número de WhatsApp
+2️⃣ Agregar nombre (opcional)
+3️⃣ No (anónimo)`;
+}
+
+function resumen(user) {
+  const mapa = `https://www.google.com/maps?q=${user.lat},${user.lng}`;
+  return `📋 *Resumen del reporte*
+
+📌 Tipo: ${user.categoria}
+📍 Ubicación: ${mapa}
+📝 Detalle: ${user.detalle}
+📸 Foto: ${user.foto ? "Sí" : "No"}
+👤 Anónimo: ${user.anonimo ? "Sí" : "No"}
+
+1️⃣ Confirmar`;
+}
+
 function send(res, text) {
   const twiml = new MessagingResponse();
   twiml.message(text);
