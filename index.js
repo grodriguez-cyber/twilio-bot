@@ -192,15 +192,16 @@ ${opciones}`;
         user.foto = false;
 
         // 👉 AQUÍ ESTABA EL BLOQUEO — YA CORREGIDO
-        reply = `👤 ¿Deseas dejar datos para seguimiento?
+        reply = `¿Deseas dejar datos para seguimiento?
 
-1️⃣ Sí
-2️⃣ No (anónimo)`;
+1️⃣ Usar mi número de WhatsApp
+2️⃣ Agregar nombre (opcional)
+3️⃣ No (anónimo)`;
         user.step = 7;
         break;
       }
 
-      reply = "❌ Responde 1 o 2.";
+      reply = "❌ Responde 1, 2 o 3.";
       break;
 
     // STATE 6 — WAIT PHOTO
@@ -208,34 +209,45 @@ ${opciones}`;
       if (req.body.NumMedia > 0) {
         user.foto = true;
       }
-      reply = `👤 ¿Deseas dejar datos para seguimiento?
+      reply = `¿Deseas dejar datos para seguimiento?
 
-1️⃣ Sí
-2️⃣ No (anónimo)`;
+1️⃣ Usar mi número de WhatsApp
+2️⃣ Agregar nombre (opcional)
+3️⃣ No (anónimo)
+`;
       user.step = 7;
       break;
 
-    // STATE 7 — CONTACT
-    case 7:
-      user.anonimo = msg === "2";
+case 7:
+  if (msg === "1") {
+    user.anonimo = false;
+    user.telefono = req.body.From.replace("whatsapp:", "");
+    user.nombre = "No proporcionado";
+    user.step = 8;
+    break;
+  }
 
-      reply = `📋 *Resumen del reporte*
+  if (msg === "2") {
+    reply = "✍️ Escribe tu nombre:";
+    user.step = 7.1; // nuevo estado
+    break;
+  }
 
-📌 Tipo: ${user.categoria}
-📍 Ubicación: https://maps.google.com/?q=${user.lat},${user.lng}
-📝 Detalle: ${user.detalle}
-📷 Foto: ${user.foto ? "Sí" : "No"}
+  if (msg === "3") {
+    user.anonimo = true;
+    user.step = 8;
+    break;
+  }
 
-1️⃣ Confirmar
-2️⃣ Cancelar`;
-      user.step = 8;
-      break;
+  reply = "❌ Selecciona 1, 2 o 3.";
+  break;
 
-    // STATE 8 — CONFIRM
-    case 8:
-      if (msg === "1") {
-        const folio = `XAL-${Date.now()}`;
-        reply = `✅ Reporte enviado correctamente.
+
+// STATE 8 — CONFIRM
+case 8:
+    if (msg === "1") {
+      const folio = `XAL-${Date.now()}`;
+      reply = `✅ Reporte enviado correctamente.
 
 🆔 Folio: ${folio}
 
