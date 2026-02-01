@@ -7,27 +7,24 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
 const sessions = {};
 
-// VALIDADORES
 const validarNombre = n => /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{3,}$/.test(n);
 const validarCorreo = c => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(c);
 const validarTelefono = t => /^[0-9]{8,15}$/.test(t);
 
 const tiposIncidencia = {
-  "1": "🔥 Incendio",
-  "2": "🕳️ Bache",
-  "3": "💡 Luminaria",
-  "4": "🗑️ Basura acumulada",
-  "5": "💧 Fuga de agua",
-  "6": "⚡ Corto eléctrico",
-  "7": "🚦 Semáforo dañado",
-  "8": "🔊 Ruido excesivo",
-  "9": "🐕 Animal en peligro",
-  "10": "🚨 Sospecha de delito",
-  "11": "🚗 Choque de vehículos",
-  "12": "🌳 Árbol caído"
+"1": "🔥 Incendio",
+"2": "🕳️ Bache",
+"3": "💡 Luminaria",
+"4": "🗑️ Basura acumulada",
+"5": "💧 Fuga de agua",
+"6": "⚡ Corto eléctrico",
+"7": "🚦 Semáforo dañado",
+"8": "🔊 Ruido excesivo",
+"9": "🐕 Animal en peligro",
+"10": "🚨 Sospecha de delito",
+"11": "🚗 Choque de vehículos",
+"12": "🌳 Árbol caído"
 };
-
-
 
 app.get("/", (req, res) => res.send("OK"));
 
@@ -42,17 +39,15 @@ if (!sessions[from]) sessions[from] = { step: 1 };
 const user = sessions[from];
 let reply = "";
 
-// Reinicio manual
 if (msg?.toLowerCase() === "hola") {
   sessions[from] = { step: 1 };
   user.step = 1;
 }
 
 switch (user.step) {
+
   case 1:
     reply = `👋 Bienvenido a *Energie Consultores*
-
-¿Qué deseas hacer?
 
 1️⃣ Dar de alta incidencia  
 2️⃣ Buscar folio`;
@@ -61,117 +56,175 @@ switch (user.step) {
 
   case 2:
     if (msg !== "1") {
-      reply = "⚠️ Por ahora solo está disponible el alta de incidencias.\nEscribe *1*.";
+      reply = "⚠️ Solo está disponible el alta de incidencias.\nEscribe *1*.";
       break;
     }
-    reply = `📋 Selecciona el tipo de incidencia:
+
+    reply = `📋 Selecciona el tipo:
 
 🔥 1. Incendio  
 🕳️ 2. Bache  
 💡 3. Luminaria  
-🗑️ 4. Basura acumulada  
-💧 5. Fuga de agua  
+🗑️ 4. Basura  
+💧 5. Fuga  
 ⚡ 6. Corto eléctrico  
-🚦 7. Semáforo dañado  
-🔊 8. Ruido excesivo  
-🐕 9. Animal en peligro  
-🚨 10. Sospecha de delito  
-🚗 11. Choque de vehículos  
-🌳 12. Árbol caído  
+🚦 7. Semáforo  
+🔊 8. Ruido  
+🐕 9. Animal  
+🚨 10. Sospecha  
+🚗 11. Choque  
+🌳 12. Árbol caído`;
 
-Responde con el número.`;
-  user.step = 3;
-  break;
+    user.step = 3;
+    break;
 
-case 3:
-  if (!tiposIncidencia[msg]) {
-reply = "❌ Opción inválida. Selecciona un número del 1 al 12.";
-break;
-}
-
-user.tipo = tiposIncidencia[msg];
-
-  reply = "✍️ Escribe tu nombre completo:";
-  user.step = 4;
+  case 3:
+    if (!tiposIncidencia[msg]) {
+      reply = "❌ Selecciona un número válido (1–12).";
+      break;
+    }
+    user.tipo = tiposIncidencia[msg];
+    reply = "✍️ Escribe tu nombre completo:";
+    user.step = 4;
     break;
 
   case 4:
     if (!validarNombre(msg)) {
-      reply = "❌ Nombre inválido. Usa solo letras y mínimo 3 caracteres.";
+      reply = "❌ Nombre inválido.";
       break;
     }
     user.nombre = msg;
-    reply = "📧 Escribe tu correo electrónico:";
+    reply = "📧 Escribe tu correo:";
     user.step = 5;
     break;
 
   case 5:
     if (!validarCorreo(msg)) {
-      reply = "❌ Correo inválido. Ejemplo: nombre@correo.com";
+      reply = "❌ Correo inválido.";
       break;
     }
     user.correo = msg;
-    reply = "📱 Escribe tu número telefónico:";
+    reply = "📱 Escribe tu teléfono:";
     user.step = 6;
     break;
 
   case 6:
     if (!validarTelefono(msg)) {
-      reply = "❌ Teléfono inválido. Solo números (8 a 15 dígitos).";
+      reply = "❌ Teléfono inválido.";
       break;
     }
     user.telefono = msg;
-    reply = "📍 Envía tu ubicación GPS usando el botón 📎 → Ubicación";
+    reply = "📍 Envía tu ubicación.";
     user.step = 7;
     break;
 
   case 7:
     if (!lat || !lng) {
-      reply = "⚠️ Debes enviar tu ubicación usando el botón 📍.";
+      reply = "⚠️ Debes enviar la ubicación con el botón 📍.";
       break;
     }
     user.lat = lat;
     user.lng = lng;
-    reply = "📝 Describe brevemente el problema:";
+    reply = "📝 Describe el problema:";
     user.step = 8;
     break;
 
   case 8:
     if (msg.length < 10) {
-      reply = "❌ La descripción debe tener al menos 10 caracteres.";
+      reply = "❌ Describe mejor el problema.";
       break;
     }
     user.descripcion = msg;
 
-    reply = `✅ *Confirma tu reporte*
+    reply = `📋 *Confirma tus datos*
 
-📌 Tipo: ${user.tipo}
-👤 Nombre: ${user.nombre}
-📧 Correo: ${user.correo}
-📱 Tel: ${user.telefono}
-📍 Ubicación: ${user.lat}, ${user.lng}
-📝 Descripción: ${user.descripcion}
+1️⃣ Tipo: ${user.tipo}
+2️⃣ Nombre: ${user.nombre}
+3️⃣ Correo: ${user.correo}
+4️⃣ Teléfono: ${user.telefono}
+5️⃣ Ubicación
+6️⃣ Descripción
 
 1️⃣ Confirmar  
-2️⃣ Cancelar`;
+2️⃣ Modificar datos`;
 
     user.step = 9;
     break;
 
   case 9:
     if (msg === "1") {
-      reply = `✅ *Reporte enviado correctamente*
-🆔 Folio: INC-${Date.now()}
-Gracias por tu reporte.`;
+      reply = `✅ Reporte enviado
+🆔 Folio: INC-${Date.now()}`;
       delete sessions[from];
-    } else {
-      reply = "❌ Reporte cancelado. Escribe *Hola* para iniciar nuevamente.";
-      delete sessions[from];
+      break;
     }
+
+    reply = `✏️ ¿Qué deseas modificar?
+
+1️⃣ Tipo
+2️⃣ Nombre
+3️⃣ Correo
+4️⃣ Teléfono
+5️⃣ Ubicación
+6️⃣ Descripción`;
+
+    user.step = 10;
+    break;
+
+  case 10:
+    const campos = {
+      "1": "tipo",
+      "2": "nombre",
+      "3": "correo",
+      "4": "telefono",
+      "5": "ubicacion",
+      "6": "descripcion"
+    };
+
+    if (!campos[msg]) {
+      reply = "⚠️ Opción inválida.";
+      break;
+    }
+
+    user.editingField = campos[msg];
+
+    const preguntas = {
+      tipo: "🔁 Escribe el número del tipo:",
+      nombre: "✍️ Escribe tu nombre:",
+      correo: "📧 Escribe tu correo:",
+      telefono: "📱 Escribe tu teléfono:",
+      ubicacion: "📍 Envía tu ubicación:",
+      descripcion: "📝 Describe el problema:"
+    };
+
+    reply = preguntas[user.editingField];
+    user.step = 11;
+    break;
+
+  case 11:
+    if (user.editingField === "tipo") {
+      if (!tiposIncidencia[msg]) {
+        reply = "❌ Número inválido.";
+        break;
+      }
+      user.tipo = tiposIncidencia[msg];
+    } else if (user.editingField === "ubicacion") {
+      if (!lat || !lng) {
+        reply = "⚠️ Envía la ubicación.";
+        break;
+      }
+      user.lat = lat;
+      user.lng = lng;
+    } else {
+      user[user.editingField] = msg;
+    }
+
+    user.editingField = null;
+    user.step = 8;
     break;
 
   default:
-    reply = "⚠️ Error inesperado. Escribe *Hola*.";
+    reply = "⚠️ Error. Escribe *Hola*.";
     delete sessions[from];
 }
 
