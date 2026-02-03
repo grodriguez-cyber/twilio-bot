@@ -57,7 +57,8 @@ const detallesPorCategoria = {
     opciones: {
       "1": "Obra abandonada",
       "2": "Material obstruyendo",
-      "3": "Daños a vialidad"
+      "3": "Daños a vialidad",
+      "4": "Solicitud de obra"
     }
   }
 };
