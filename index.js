@@ -132,7 +132,10 @@ app.post("/whatsapp", (req, res) => {
       }
 
       user.categoria = categorias[msg];
-      reply = "📍 Envía tu ubicación actual usando el botón 📎 → Ubicación.";
+      reply = `📍 Envía tu ubicación actual.
+
+Presiona ➕ (iPhone) o 📎 (Android)
+Luego selecciona *Ubicación*`;
       user.step = 3;
       break;
 
