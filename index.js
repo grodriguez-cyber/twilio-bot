@@ -1,7 +1,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const { MessagingResponse } = require("twilio").twiml;
-
+const axios = require("axios"); // 👈 AQUÍ
 const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
 
@@ -67,7 +67,8 @@ const detallesPorCategoria = {
 // ENDPOINT
 // =======================
 
-app.post("/whatsapp", (req, res) => {
+//app.post("/whatsapp", (req, res) => {
+  app.post("/whatsapp", async (req, res) => {
   const from = req.body.From;
   const msg = req.body.Body?.trim();
   const lat = req.body.Latitude;
@@ -242,7 +243,7 @@ ${opciones}`;
       break;
 
     // STATE 8 — CONFIRM
-    case 8:
+    /*case 8:
       if (msg === "1") {
         const folio = `XAL-${Date.now()}`;
         reply = `✅ Reporte enviado correctamente.
@@ -255,6 +256,33 @@ Escribe *INICIO* para crear otro.`;
         break;
       }
 
+      reply = "❌ Proceso cancelado. Escribe *INICIO* para comenzar.";
+      delete sessions[from];
+      break;*/
+
+    case 8:
+      if (msg === "1") {
+        try {
+          const response = await enviarReporte(user);
+          const folio = response.data.folio || `XAL-${Date.now()}`;
+    
+          reply = `✅ Reporte enviado correctamente.
+    
+    🆔 Folio: ${folio}
+    
+    Gracias por tu reporte.
+    Escribe *INICIO* para crear otro.`;
+        } catch (error) {
+          console.error("Error enviando reporte:", error.message);
+    
+          reply = `❌ No se pudo registrar el reporte.
+    Intenta nuevamente más tarde.`;
+        }
+    
+        delete sessions[from];
+        break;
+      }
+    
       reply = "❌ Proceso cancelado. Escribe *INICIO* para comenzar.";
       delete sessions[from];
       break;
@@ -297,4 +325,20 @@ function send(res, text) {
   res.type("text/xml").send(twiml.toString());
 }
 
+
+async function enviarReporte(user) {
+  return axios.post("http://localhost:4000/api/reports/whatsapp", { 
+    categoria: user.categoria,
+    detalle: user.detalle,
+    ubicacion: {
+      lat: user.lat,
+      lng: user.lng
+    },
+    foto: user.foto,
+    anonimo: user.anonimo,
+    nombre: user.nombre || null,
+    telefono: user.telefono || null,
+    origen: "whatsapp"
+  });
+}
 app.listen(process.env.PORT || 3000);
