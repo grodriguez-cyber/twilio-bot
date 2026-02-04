@@ -339,8 +339,8 @@ async function enviarReporte(user) {
     },
     //foto: user.foto,
     anonimo: user.anonimo,
-    nombre: user.nombre || null,
-    telefono: user.telefono || null,
+    nombre: user.nombre || "Anonimo",
+    telefono: user.telefono || 0,
     //origen: "whatsapp"
   });
 }
