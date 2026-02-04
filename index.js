@@ -153,7 +153,7 @@ Luego selecciona *Ubicación*`;
       user.lat = lat;
       user.lng = lng;
 
-      const data = detallesPorCategoria[];
+      const data = detallesPorCategoria[user.categoria];
       const opciones = Object.entries(data.opciones)
         .map(([k, v]) => `${k}️⃣ ${v}`)
         .join("\n");
@@ -166,7 +166,7 @@ ${opciones}`;
 
     // STATE 4 — DETAIL
     case 4:
-      const opcionesDetalle = detallesPorCategoria[].opciones;
+      const opcionesDetalle = detallesPorCategoria[user.categoria].opciones;
       if (!opcionesDetalle[msg]) {
         reply = "❌ Selecciona una opción válida.";
         break;
