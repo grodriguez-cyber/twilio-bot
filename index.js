@@ -336,11 +336,11 @@ async function enviarReporte(user) {
       lat: user.lat,
       lng: user.lng
     },
-    foto: user.foto,
+    //foto: user.foto,
     anonimo: user.anonimo,
     nombre: user.nombre || null,
     telefono: user.telefono || null,
-    origen: "whatsapp"
+    //origen: "whatsapp"
   });
 }
 app.listen(process.env.PORT || 3000);
