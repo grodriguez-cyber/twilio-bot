@@ -19,6 +19,7 @@ const categorias = {
   "5": "🚧 Obra pública"
 };
 
+
 const detallesPorCategoria = {
   "🕳️ Bache": {
     pregunta: "🕳️ ¿Qué tan urgente es el bache?",
@@ -134,6 +135,7 @@ const detallesPorCategoria = {
       }
 
       user.categoria = categorias[msg];
+      user.categoriaID = msg;
       reply = `📍 Envía tu ubicación actual.
 
 Presiona ➕ (iPhone) o 📎 (Android)
@@ -151,7 +153,7 @@ Luego selecciona *Ubicación*`;
       user.lat = lat;
       user.lng = lng;
 
-      const data = detallesPorCategoria[user.categoria];
+      const data = detallesPorCategoria[];
       const opciones = Object.entries(data.opciones)
         .map(([k, v]) => `${k}️⃣ ${v}`)
         .join("\n");
@@ -164,7 +166,7 @@ ${opciones}`;
 
     // STATE 4 — DETAIL
     case 4:
-      const opcionesDetalle = detallesPorCategoria[user.categoria].opciones;
+      const opcionesDetalle = detallesPorCategoria[].opciones;
       if (!opcionesDetalle[msg]) {
         reply = "❌ Selecciona una opción válida.";
         break;
@@ -327,8 +329,8 @@ function send(res, text) {
 
 
 async function enviarReporte(user) {
-  return axios.post("http://localhost:4000/api/reports/whatsapp", { 
-    categoria: user.categoria,
+  return axios.post("https://138.201.173.117.nip.io/api/reports/whatsapp", {
+    categoria: user.categoriaID,
     detalle: user.detalle,
     ubicacion: {
       lat: user.lat,
