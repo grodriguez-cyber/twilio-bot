@@ -331,7 +331,7 @@ function send(res, text) {
 async function enviarReporte(user) {
   return axios.post("https://138.201.173.117.nip.io/api/reports/whatsapp", {
     //categoria: user.categoriaID,
-    categoria: user.categoria,
+    categoria: Number(user.categoriaID),
     detalle: user.detalle,
     ubicacion: {
       lat: user.lat,
