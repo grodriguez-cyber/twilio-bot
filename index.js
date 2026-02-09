@@ -85,16 +85,31 @@ const detallesPorCategoria = {
   const cmd = msg?.toLowerCase();
 
   if (cmd === "inicio") {
-    sessions[from] = { step: 0 };
-    reply = "🔄 Proceso reiniciado.\nEscribe cualquier mensaje para comenzar.";
+    sessions[from] = { step: 1 };
+  
+    reply = `👋 Hola, soy el bot de Reporte Ciudadano.
+  
+  1️⃣ Continuar
+  2️⃣ Salir`;
+  
     return send(res, reply);
   }
+
 
   if (cmd === "salir") {
     delete sessions[from];
     reply = "👋 Proceso cancelado. Escribe *inicio* para comenzar de nuevo.";
     return send(res, reply);
   }
+    
+  if (user.step === 0) {
+  user.step = 1;
+  reply = `👋 Hola, soy el bot de Reporte Ciudadano.
+
+1️⃣ Continuar
+2️⃣ Salir`;
+  return send(res, reply);
+}
 
   // =======================
   // FLUJO PRINCIPAL
