@@ -1,7 +1,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const { MessagingResponse } = require("twilio").twiml;
-const axios = require("axios"); // 👈 AQUÍ
+const axios = require("axios");
 const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
 
@@ -12,54 +12,61 @@ const sessions = {};
 // =======================
 
 const categorias = {
-  "1": "🕳️ Bache",
-  "2": "💡 Alumbrado",
-  "3": "💧 Agua potable",
-  "4": "🌳 Arbolado",
-  "5": "🚧 Obra pública"
+  "a": "🕳️ Bache",
+  "b": "💡 Alumbrado",
+  "c": "💧 Agua potable",
+  "d": "🌳 Arbolado",
+  "e": "🚧 Obra pública"
 };
 
+const numCategorias = {
+  "a": 1,
+  "b": 2,
+  "c": 3,
+  "d": 4,
+  "e": 5
+};
 
 const detallesPorCategoria = {
   "🕳️ Bache": {
     pregunta: "🕳️ ¿Qué tan urgente es el bache?",
     opciones: {
-      "1": "Leve (se puede esquivar)",
-      "2": "Media (daña si no lo ves)",
-      "3": "Alta (muy peligroso)"
+      "a": "Leve (se puede esquivar)",
+      "b": "Media (daña si no lo ves)",
+      "c": "Alta (muy peligroso)"
     }
   },
   "💡 Alumbrado": {
     pregunta: "💡 ¿Qué ocurre con el alumbrado?",
     opciones: {
-      "1": "No enciende",
-      "2": "Está dañado",
-      "3": "Permanece encendido de día"
+      "a": "No enciende",
+      "b": "Está dañado",
+      "c": "Permanece encendido de día"
     }
   },
   "💧 Agua potable": {
     pregunta: "💧 ¿Cómo es el problema del agua?",
     opciones: {
-      "1": "Goteo constante",
-      "2": "Fuga considerable",
-      "3": "Sin suministro"
+      "a": "Goteo constante",
+      "b": "Fuga considerable",
+      "c": "Sin suministro"
     }
   },
   "🌳 Arbolado": {
     pregunta: "🌳 ¿Qué situación presenta el árbol?",
     opciones: {
-      "1": "Rama caída",
-      "2": "Bloquea el paso",
-      "3": "Riesgo de caer"
+      "a": "Rama caída",
+      "b": "Bloquea el paso",
+      "c": "Riesgo de caer"
     }
   },
   "🚧 Obra pública": {
     pregunta: "🚧 ¿Cuál es el problema?",
     opciones: {
-      "1": "Obra abandonada",
-      "2": "Material obstruyendo",
-      "3": "Daños a vialidad",
-      "4": "Solicitud de obra"
+      "a": "Obra abandonada",
+      "b": "Material obstruyendo",
+      "c": "Daños a vialidad",
+      "d": "Solicitud de obra"
     }
   }
 };
@@ -68,8 +75,7 @@ const detallesPorCategoria = {
 // ENDPOINT
 // =======================
 
-//app.post("/whatsapp", (req, res) => {
-  app.post("/whatsapp", async (req, res) => {
+app.post("/whatsapp", async (req, res) => {
   const from = req.body.From;
   const msg = req.body.Body?.trim();
   const lat = req.body.Latitude;
@@ -89,12 +95,11 @@ const detallesPorCategoria = {
   
     reply = `👋 Hola, soy el bot de Reporte Ciudadano.
   
-  1️⃣ Continuar
-  2️⃣ Salir`;
+🅰️ Continuar
+🅱️ Salir`;
   
     return send(res, reply);
   }
-
 
   if (cmd === "salir") {
     delete sessions[from];
@@ -103,13 +108,13 @@ const detallesPorCategoria = {
   }
     
   if (user.step === 0) {
-  user.step = 1;
-  reply = `👋 Hola, soy el bot de Reporte Ciudadano.
+    user.step = 1;
+    reply = `👋 Hola, soy el bot de Reporte Ciudadano.
 
-1️⃣ Continuar
-2️⃣ Salir`;
-  return send(res, reply);
-}
+🅰️ Continuar
+🅱️ Salir`;
+    return send(res, reply);
+  }
 
   // =======================
   // FLUJO PRINCIPAL
@@ -120,37 +125,37 @@ const detallesPorCategoria = {
     case 0:
       reply = `👋 Hola, soy el bot de Reporte Ciudadano.
 
-1️⃣ Continuar
-2️⃣ Salir`;
+🅰️ Continuar
+🅱️ Salir`;
       user.step = 1;
       break;
 
     // STATE 1 — CATEGORY
     case 1:
-      if (msg !== "1") {
-        reply = "❌ Escribe *1* para continuar o *SALIR*.";
+      if (cmd !== "a") {
+        reply = "❌ Escribe *A* para continuar o *SALIR*.";
         break;
       }
 
       reply = `📋 ¿Qué deseas reportar?
 
-1️⃣ Bache
-2️⃣ Alumbrado
-3️⃣ Agua potable
-4️⃣ Arbolado
-5️⃣ Obra pública`;
+A) Bache
+B) Alumbrado
+C) Agua potable
+D) Arbolado
+E) Obra pública`;
       user.step = 2;
       break;
 
     // STATE 2 — CATEGORY SELECT
     case 2:
-      if (!categorias[msg]) {
-        reply = "❌ Selecciona un número del 1 al 5.";
+      if (!categorias[cmd]) {
+        reply = "❌ Selecciona una letra de la A a la E.";
         break;
       }
 
-      user.categoria = categorias[msg];
-      user.categoriaID = msg;
+      user.categoria = categorias[cmd];
+      user.categoriaID = numCategorias[cmd];
       reply = `📍 Envía tu ubicación actual.
 
 Presiona ➕ (iPhone) o 📎 (Android)
@@ -170,7 +175,7 @@ Luego selecciona *Ubicación*`;
 
       const data = detallesPorCategoria[user.categoria];
       const opciones = Object.entries(data.opciones)
-        .map(([k, v]) => `${k}️⃣ ${v}`)
+        .map(([k, v]) => `${k.toUpperCase()}) ${v}`)
         .join("\n");
 
       reply = `${data.pregunta}
@@ -182,36 +187,36 @@ ${opciones}`;
     // STATE 4 — DETAIL
     case 4:
       const opcionesDetalle = detallesPorCategoria[user.categoria].opciones;
-      if (!opcionesDetalle[msg]) {
+      if (!opcionesDetalle[cmd]) {
         reply = "❌ Selecciona una opción válida.";
         break;
       }
 
-      user.detalle = opcionesDetalle[msg];
+      user.detalle = opcionesDetalle[cmd];
 
       reply = `📸 ¿Deseas enviar una foto?
 
-1️⃣ Enviar foto
-2️⃣ Omitir`;
+🅰️ Enviar foto
+🅱️ Omitir`;
       user.step = 5;
       break;
 
     // STATE 5 — PHOTO
     case 5:
-      if (msg === "1") {
+      if (cmd === "a") {
         reply = "📷 Envía la foto ahora o escribe *OMITIR*.";
         user.step = 6;
         break;
       }
 
-      if (msg === "2") {
+      if (cmd === "b") {
         user.foto = false;
         reply = contactoPregunta();
         user.step = 7;
         break;
       }
 
-      reply = "❌ Responde 1 o 2.";
+      reply = "❌ Responde A o B.";
       break;
 
     // STATE 6 — WAIT PHOTO
@@ -225,7 +230,7 @@ ${opciones}`;
 
     // STATE 7 — CONTACT
     case 7:
-      if (msg === "1") {
+      if (cmd === "a") {
         user.anonimo = false;
         user.telefono = from.replace("whatsapp:", "");
         user.nombre = "No proporcionado";
@@ -234,20 +239,20 @@ ${opciones}`;
         break;
       }
 
-      if (msg === "2") {
+      if (cmd === "b") {
         reply = "✍️ Escribe tu nombre:";
         user.step = 7.1;
         break;
       }
 
-      if (msg === "3") {
+      if (cmd === "c") {
         user.anonimo = true;
         reply = resumen(user);
         user.step = 8;
         break;
       }
 
-      reply = "❌ Selecciona 1, 2 o 3.";
+      reply = "❌ Selecciona A, B o C.";
       break;
 
     // STATE 7.1 — NAME
@@ -260,25 +265,8 @@ ${opciones}`;
       break;
 
     // STATE 8 — CONFIRM
-    /*case 8:
-      if (msg === "1") {
-        const folio = `XAL-${Date.now()}`;
-        reply = `✅ Reporte enviado correctamente.
-
-🆔 Folio: ${folio}
-
-Gracias por tu reporte.
-Escribe *INICIO* para crear otro.`;
-        delete sessions[from];
-        break;
-      }
-
-      reply = "❌ Proceso cancelado. Escribe *INICIO* para comenzar.";
-      delete sessions[from];
-      break;*/
-
     case 8:
-      if (msg === "1") {
+      if (cmd === "a") {
         try {
           const response = await enviarReporte(user);
           const folio = response.data.folio || `XAL-${Date.now()}`;
@@ -318,9 +306,9 @@ Escribe *INICIO* para crear otro.`;
 function contactoPregunta() {
   return `¿Deseas dejar datos para seguimiento?
 
-1️⃣ Usar mi número de WhatsApp
-2️⃣ Agregar nombre (opcional)
-3️⃣ No (anónimo)`;
+A) Usar mi número de WhatsApp
+B) Agregar nombre (opcional)
+C) No (anónimo)`;
 }
 
 function resumen(user) {
@@ -333,7 +321,7 @@ function resumen(user) {
 📸 Foto: ${user.foto ? "Sí" : "No"}
 👤 Anónimo: ${user.anonimo ? "Sí" : "No"}
 
-1️⃣ Confirmar`;
+A) Confirmar`;
 }
 
 function send(res, text) {
@@ -342,21 +330,17 @@ function send(res, text) {
   res.type("text/xml").send(twiml.toString());
 }
 
-
 async function enviarReporte(user) {
   return axios.post("https://138.201.173.117.nip.io/api/reports/whatsapp", {
-    //categoria: user.categoriaID,
     categoria: Number(user.categoriaID),
     detalle: user.detalle,
     ubicacion: {
       lat: user.lat,
       lng: user.lng
     },
-    //foto: user.foto,
     anonimo: user.anonimo,
     nombre: user.nombre || "Anonimo",
     telefono: user.telefono || 0,
-    //origen: "whatsapp"
   });
 }
 app.listen(process.env.PORT || 3000);
