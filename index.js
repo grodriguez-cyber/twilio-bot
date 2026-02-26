@@ -93,7 +93,7 @@ app.post("/whatsapp", async (req, res) => {
   if (cmd === "inicio") {
     sessions[from] = { step: 1 };
   
-    reply = `👋 Hola, soy el bot de Reporte Ciudadano.
+    reply = `👋 Hola!, soy tu ayuntamiento, para comenzar tu reportes contesta lo siguiente.
   
 🅰️ Continuar
 🅱️ Salir`;
