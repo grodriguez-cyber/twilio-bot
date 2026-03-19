@@ -374,14 +374,17 @@ async function enviarReporte(user) {
     /*const response = await axios.get(user.mediaUrl, {
       responseType: "stream"
     });*/
+    console.log("DESCARGANDO MEDIA CON AUTH...");
+console.log("URL:", user.mediaUrl);
     const response = await axios.get(user.mediaUrl, {
       responseType: "stream",
       timeout: 10000,
-      auth: {
-        username: 'ACfa95efff69384000224e9e6ef02713b7',
-        password: '6b97b4aa3543af3b640da9f3ba897fc7'
+      auth: { 
+        username: process.env.TWILIO_ACCOUNT_SID,
+        password: process.env.TWILIO_AUTH_TOKEN
       }
     });
+    console.log("DESCARGA OK:", response.status);
     console.log("Descargando imagen de:", user.mediaUrl);
 
     form.append("foto", response.data, {
