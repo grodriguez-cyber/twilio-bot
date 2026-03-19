@@ -329,8 +329,46 @@ function send(res, text) {
   twiml.message(text);
   res.type("text/xml").send(twiml.toString());
 }
+const FormData = require("form-data");
 
 async function enviarReporte(user) {
+  const form = new FormData();
+
+  form.append("categoria", Number(user.categoriaID));
+  form.append("detalle", user.detalle);
+  form.append(
+    "ubicacion",
+    JSON.stringify({
+      lat: user.lat,
+      lng: user.lng
+    })
+  );
+  form.append("anonimo", user.anonimo);
+  form.append("nombre", user.nombre || "Anonimo");
+  form.append("telefono", user.telefono || 0);
+
+  // 📸 Si hay imagen → descargarla y adjuntarla
+  if (user.foto && user.mediaUrl) {
+    const response = await axios.get(user.mediaUrl, {
+      responseType: "stream"
+    });
+
+    form.append("foto", response.data, {
+      filename: "reporte.jpg",
+      contentType: "image/jpeg"
+    });
+  }
+
+  return axios.post(
+    "https://138.201.173.117.nip.io/api/reports/whatsapp_new",
+    form,
+    {
+      headers: form.getHeaders()
+    }
+  );
+}
+
+async function enviarReporteOld(user) {
   return axios.post("https://138.201.173.117.nip.io/api/reports/whatsapp", {
     categoria: Number(user.categoriaID),
     detalle: user.detalle,
