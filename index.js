@@ -376,22 +376,49 @@ async function enviarReporte(user) {
     });*/
     console.log("DESCARGANDO MEDIA CON AUTH...,",process.env.TWILIO_ACCOUNT_SID);
 console.log("URL:", user.mediaUrl);
-    const response = await axios.get(user.mediaUrl, {
-      responseType: "stream",
-      timeout: 10000,
-      auth: { 
-        username: process.env.TWILIO_ACCOUNT_SID,
-        password: process.env.TWILIO_AUTH_TOKEN
-      }
-    });
+let imageStream = null;
+
+        try {
+          console.log("📥 Descargando imagen de Twilio...");
+          console.log("URL:", user.mediaUrl);
+
+          const response = await axios.get(user.mediaUrl, {
+            responseType: "stream",
+            timeout: 10000,
+            auth: { 
+              username: process.env.TWILIO_ACCOUNT_SID,
+              password: process.env.TWILIO_AUTH_TOKEN
+            }
+          });
+
+          console.log("✅ Imagen descargada correctamente:", response.status);
+
+          imageStream = response.data;
+
+        } catch (error) {
+          console.error("❌ Error descargando imagen de Twilio");
+
+          console.error("message:", error.message);
+          console.error("status:", error.response?.status);
+          console.error("data:", error.response?.data);
+
+          // Opcional: decides si continúas sin imagen
+          imageStream = null;
+        }
     console.log("DESCARGA OK:", response.status);
     console.log("Descargando imagen de:", user.mediaUrl);
 
-    form.append("foto", response.data, {
+    if (imageStream) {
+      form.append("foto", imageStream, {
+        filename: "reporte.jpg",
+        contentType: "image/jpeg"
+      });
+    }
+  /*  form.append("foto", response.data, {
       filename: "reporte.jpg",
       contentType: "image/jpeg"
-    });
-  }
+    });*/
+  } 
 
   return axios.post(
     "https://138.201.173.117.nip.io/api/reports/whatsapp_new",
