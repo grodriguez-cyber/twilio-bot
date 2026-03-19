@@ -371,8 +371,16 @@ async function enviarReporte(user) {
 
   // 📸 Si hay imagen → descargarla y adjuntarla
   if (user.foto && user.mediaUrl) {
-    const response = await axios.get(user.mediaUrl, {
+    /*const response = await axios.get(user.mediaUrl, {
       responseType: "stream"
+    });*/
+    const response = await axios.get(user.mediaUrl, {
+      responseType: "stream",
+      timeout: 10000,
+      auth: {
+        username: 'ACfa95efff69384000224e9e6ef02713b7',
+        password: '6b97b4aa3543af3b640da9f3ba897fc7'
+      }
     });
     console.log("Descargando imagen de:", user.mediaUrl);
 
