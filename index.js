@@ -220,14 +220,27 @@ ${opciones}`;
       break;
 
     // STATE 6 — WAIT PHOTO
-    case 6:
+   /* case 6:
       if (req.body.NumMedia > 0) {
         user.foto = true;
       }
       reply = contactoPregunta();
       user.step = 7;
       break;
+*/
+      case 6:
+        console.log("NumMedia:", req.body.NumMedia);
+        console.log("MediaUrl0:", req.body.MediaUrl0);
 
+        if (req.body.NumMedia > 0) {
+          user.foto = true;
+          user.mediaUrl = req.body.MediaUrl0; // 🔥 FALTABA ESTO
+        } else {
+          user.foto = false;
+        }
+        reply = contactoPregunta();
+        user.step = 7;
+        break;
     // STATE 7 — CONTACT
     case 7:
       if (cmd === "a") {
@@ -268,6 +281,9 @@ ${opciones}`;
     case 8:
       if (cmd === "a") {
         try {
+          console.log("USER DATA:", user);
+          console.log("NumMedia:", req.body.NumMedia);
+          console.log("MediaUrl:", req.body.MediaUrl0);
           const response = await enviarReporte(user);
           console.log("Reporte enviado, respuesta:", response.data);
           const folio = response.data.folio || `XAL-${Date.now()}`;
@@ -279,10 +295,14 @@ ${opciones}`;
     Gracias por tu reporte.
     Escribe *INICIO* para crear otro.`;
         } catch (error) {
-          console.error("Error enviando reporte:", error.message);
-    
+          console.error("❌ ERROR COMPLETO:");
+          console.error("message:", error.message);
+          console.error("status:", error.response?.status);
+          console.error("data:", error.response?.data);
+          console.error("headers:", error.response?.headers);
+        
           reply = `❌ No se pudo registrar el reporte.
-    Intenta nuevamente más tarde.`;
+        Intenta nuevamente más tarde.`;
         }
     
         delete sessions[from];
@@ -333,6 +353,7 @@ function send(res, text) {
 const FormData = require("form-data");
 
 async function enviarReporte(user) {
+  
   const form = new FormData();
 
   form.append("categoria", Number(user.categoriaID));
