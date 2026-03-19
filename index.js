@@ -269,6 +269,7 @@ ${opciones}`;
       if (cmd === "a") {
         try {
           const response = await enviarReporte(user);
+          console.log("Reporte enviado, respuesta:", response.data);
           const folio = response.data.folio || `XAL-${Date.now()}`;
     
           reply = `✅ Reporte enviado correctamente.
@@ -352,6 +353,7 @@ async function enviarReporte(user) {
     const response = await axios.get(user.mediaUrl, {
       responseType: "stream"
     });
+    console.log("Descargando imagen de:", user.mediaUrl);
 
     form.append("foto", response.data, {
       filename: "reporte.jpg",
