@@ -374,7 +374,7 @@ async function enviarReporte(user) {
     /*const response = await axios.get(user.mediaUrl, {
       responseType: "stream"
     });*/
-    console.log("DESCARGANDO MEDIA CON AUTH...");
+    console.log("DESCARGANDO MEDIA CON AUTH...,",process.env.TWILIO_ACCOUNT_SID);
 console.log("URL:", user.mediaUrl);
     const response = await axios.get(user.mediaUrl, {
       responseType: "stream",
