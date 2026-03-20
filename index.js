@@ -4,7 +4,7 @@ const { MessagingResponse } = require("twilio").twiml;
 const axios = require("axios");
 const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
-
+const FormData = require("form-data");
 const sessions = {};
 
 // =======================
@@ -350,65 +350,121 @@ function send(res, text) {
   twiml.message(text);
   res.type("text/xml").send(twiml.toString());
 }
-const FormData = require("form-data");
+ 
+async function enviarReporteNew(user) {
+  const url = "https://138.201.173.117.nip.io/api/reports/whatsapp_new";
 
-async function enviarReporte(user) {
-  
-  const form = new FormData();
+  try {
+    // =========================
+    // 🧠 CASO 1: SIN IMAGEN → JSON
+    // =========================
+    if (!user.foto || !user.mediaUrl) {
+      console.log("📭 Enviando reporte SIN imagen");
 
-  form.append("categoria", Number(user.categoriaID));
-  form.append("detalle", user.detalle);
-  form.append(
-    "ubicacion",
-    JSON.stringify({
-      lat: user.lat,
-      lng: user.lng
-    })
-  );
-  form.append("anonimo", user.anonimo);
-  form.append("nombre", user.nombre || "Anonimo");
-  form.append("telefono", user.telefono || 0);
+      const response = await axios.post(url, {
+        categoria: Number(user.categoriaID),
+        detalle: user.detalle,
+        ubicacion: {
+          lat: user.lat,
+          lng: user.lng
+        },
+        anonimo: user.anonimo,
+        nombre: user.nombre || "Anonimo",
+        telefono: user.telefono || 0
+      });
 
-  // 📸 Si hay imagen → descargarla y adjuntarla
-  if (user.foto && user.mediaUrl) {
+      return response;
+    }
+
+    // =========================
+    // 📸 CASO 2: CON IMAGEN → multipart/form-data
+    // =========================
+    console.log("📸 Enviando reporte CON imagen");
+
+    const form = new FormData();
+
+    form.append("categoria", Number(user.categoriaID));
+    form.append("detalle", user.detalle);
+    form.append(
+      "ubicacion",
+      JSON.stringify({
+        lat: user.lat,
+        lng: user.lng
+      })
+    );
+    form.append("anonimo", user.anonimo);
+    form.append("nombre", user.nombre || "Anonimo");
+    form.append("telefono", user.telefono || 0);
+
+    // =========================
+    // 🔽 Descargar imagen desde Twilio
+    // =========================
     try {
-      const response = await axios.get(user.mediaUrl, {
+      const mediaResponse = await axios.get(user.mediaUrl, {
         responseType: "stream",
         timeout: 10000,
-        auth: { 
+        auth: {
           username: process.env.TWILIO_ACCOUNT_SID,
           password: process.env.TWILIO_AUTH_TOKEN
         }
       });
-  
-      const imageStream = response.data;
-  
-      if (imageStream) {
-        form.append("foto", imageStream, {
-          filename: "reporte.jpg",
-          contentType: "image/jpeg"
-        });
-      }
-  
-    } catch (error) {
-      console.error("❌ Error descargando imagen");
-      console.error("message:", error.message);
-      console.error("status:", error.response?.status); 
-    }
-  }else {
-    console.log("📭 No se envió imagen, continuando sin foto...");
-  }
 
-  return axios.post(
-    "https://138.201.173.117.nip.io/api/reports/whatsapp_new",
-    form,
-    {
-      headers: form.getHeaders()
+      const contentType = mediaResponse.headers["content-type"] || "image/jpeg";
+
+      form.append("foto", mediaResponse.data, {
+        filename: "reporte.jpg",
+        contentType
+      });
+
+      console.log("✅ Imagen adjuntada correctamente");
+
+    } catch (error) {
+      console.error("⚠️ Error descargando imagen, se enviará sin foto");
+
+      console.error("message:", error.message);
+      console.error("status:", error.response?.status);
+
+      // 🔥 fallback elegante → enviar SIN imagen
+      return await axios.post(url, {
+        categoria: Number(user.categoriaID),
+        detalle: user.detalle,
+        ubicacion: {
+          lat: user.lat,
+          lng: user.lng
+        },
+        anonimo: user.anonimo,
+        nombre: user.nombre || "Anonimo",
+        telefono: user.telefono || 0
+      });
     }
-  );
+
+    // =========================
+    // 🚀 Enviar multipart
+    // =========================
+    const headers = {
+      ...form.getHeaders()
+    };
+
+    const response = await axios.post(url, form, {
+      headers,
+      maxContentLength: Infinity,
+      maxBodyLength: Infinity
+    });
+
+    return response;
+
+  } catch (error) {
+    console.error("❌ Error enviando reporte");
+
+    console.error("message:", error.message);
+    console.error("status:", error.response?.status);
+    console.error("data:", error.response?.data);
+
+    throw error; // 🔥 importante para que tu controller lo capture
+  }
 }
 
-async function enviarReporteOld(user) {
+async function enviarReporte(user) {
   return axios.post("https://138.201.173.117.nip.io/api/reports/whatsapp", {
     categoria: Number(user.categoriaID),
     detalle: user.detalle,
