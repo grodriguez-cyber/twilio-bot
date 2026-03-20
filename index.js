@@ -371,54 +371,33 @@ async function enviarReporte(user) {
 
   // 📸 Si hay imagen → descargarla y adjuntarla
   if (user.foto && user.mediaUrl) {
-    /*const response = await axios.get(user.mediaUrl, {
-      responseType: "stream"
-    });*/
-    console.log("DESCARGANDO MEDIA CON AUTH...,",process.env.TWILIO_ACCOUNT_SID);
-console.log("URL:", user.mediaUrl);
-let imageStream = null;
-
-        try {
-          console.log("📥 Descargando imagen de Twilio...");
-          console.log("URL:", user.mediaUrl);
-
-          const response = await axios.get(user.mediaUrl, {
-            responseType: "stream",
-            timeout: 10000,
-            auth: { 
-              username: process.env.TWILIO_ACCOUNT_SID,
-              password: process.env.TWILIO_AUTH_TOKEN
-            }
-          });
-
-          console.log("✅ Imagen descargada correctamente:", response.status);
-
-          imageStream = response.data;
-
-        } catch (error) {
-          console.error("❌ Error descargando imagen de Twilio");
-
-          console.error("message:", error.message);
-          console.error("status:", error.response?.status);
-          console.error("data:", error.response?.data);
-
-          // Opcional: decides si continúas sin imagen
-          imageStream = null;
+    try {
+      const response = await axios.get(user.mediaUrl, {
+        responseType: "stream",
+        timeout: 10000,
+        auth: { 
+          username: process.env.TWILIO_ACCOUNT_SID,
+          password: process.env.TWILIO_AUTH_TOKEN
         }
-    console.log("DESCARGA OK:", response.status);
-    console.log("Descargando imagen de:", user.mediaUrl);
-
-    if (imageStream) {
-      form.append("foto", imageStream, {
-        filename: "reporte.jpg",
-        contentType: "image/jpeg"
       });
+  
+      const imageStream = response.data;
+  
+      if (imageStream) {
+        form.append("foto", imageStream, {
+          filename: "reporte.jpg",
+          contentType: "image/jpeg"
+        });
+      }
+  
+    } catch (error) {
+      console.error("❌ Error descargando imagen");
+      console.error("message:", error.message);
+      console.error("status:", error.response?.status); 
     }
-  /*  form.append("foto", response.data, {
-      filename: "reporte.jpg",
-      contentType: "image/jpeg"
-    });*/
-  } 
+  }else {
+    console.log("📭 No se envió imagen, continuando sin foto...");
+  }
 
   return axios.post(
     "https://138.201.173.117.nip.io/api/reports/whatsapp_new",
