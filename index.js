@@ -400,6 +400,18 @@ async function enviarReporteNew(user) {
     // 🔽 Descargar imagen desde Twilio
     // =========================
     try {
+       // Create authorization header with Account SID and Auth Token
+       const authHeader = 'Basic ' + Buffer.from(`${process.env.TWILIO_ACCOUNT_SID}:${process.env.TWILIO_AUTH_TOKEN}`).toString('base64');
+       const response = await fetch(mediaUrl, {
+         headers: {
+           'Authorization': authHeader
+         }
+       });
+       const mediaResponse = await fetch(user.mediaUrl, {
+        headers: {
+          'Authorization': authHeader
+        }
+      });/*
       const mediaResponse = await axios.get(user.mediaUrl, {
         responseType: "stream",
         timeout: 10000,
@@ -407,7 +419,7 @@ async function enviarReporteNew(user) {
           username: process.env.TWILIO_ACCOUNT_SID,
           password: process.env.TWILIO_AUTH_TOKEN
         }
-      });
+      });*/
 
       const contentType = mediaResponse.headers["content-type"] || "image/jpeg";
 
