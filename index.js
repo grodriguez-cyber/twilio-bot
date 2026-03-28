@@ -418,7 +418,8 @@ async function enviarReporteNew(user) {
 
         form.append("foto_whatsapp", buffer, {
           filename: "reporte.jpg",
-          contentType
+          contentType,
+          knownLength: buffer.length
         });
    
  
@@ -430,31 +431,20 @@ async function enviarReporteNew(user) {
       console.error("message:", error.message);
       console.error("status:", error.response?.status);
 
-      // 🔥 fallback elegante → enviar SIN imagen
-      return await axios.post(url, {
-        categoria: Number(user.categoriaID),
-        detalle: user.detalle,
-        ubicacion: {
-          lat: user.lat,
-          lng: user.lng
-        },
-        anonimo: user.anonimo,
-        nombre: user.nombre || "Anonimo",
-        telefono: user.telefono || 0
-      });
+      
     }
 
     // =========================
     // 🚀 Enviar multipart
-    // =========================
-    const headers = {
-      ...form.getHeaders()
-    };
-
+    // ========================= 
+ 
     const response = await axios.post(url, form, {
-      headers,
+      headers: {
+        ...form.getHeaders()
+      },
       maxContentLength: Infinity,
-      maxBodyLength: Infinity
+      maxBodyLength: Infinity,
+      transformRequest: [(data) => data] // 🔥 CLAVE
     });
 
     return response;
