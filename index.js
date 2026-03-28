@@ -373,7 +373,9 @@ async function enviarReporteNew(user) {
       });
 
       return response;
-    }
+    }else {
+
+   
 
     // =========================
     // 📸 CASO 2: CON IMAGEN → multipart/form-data
@@ -400,28 +402,25 @@ async function enviarReporteNew(user) {
     // =========================
     try {
        // Create authorization header with Account SID and Auth Token
-       const authHeader = 'Basic ' + Buffer.from(`${process.env.TWILIO_ACCOUNT_SID}:${process.env.TWILIO_AUTH_TOKEN}`).toString('base64');
-      
-       const mediaResponse = await fetch(user.mediaUrl, {
-        headers: {
-          'Authorization': authHeader
-        }
-      });/*
+        
       const mediaResponse = await axios.get(user.mediaUrl, {
-        responseType: "stream",
-        timeout: 10000,
-        auth: {
-          username: process.env.TWILIO_ACCOUNT_SID,
-          password: process.env.TWILIO_AUTH_TOKEN
-        }
-      });*/
+          responseType: "arraybuffer", // 🔥 CLAVE  
+          auth: {
+            username: process.env.TWILIO_ACCOUNT_SID,
+            password: process.env.TWILIO_AUTH_TOKEN
+          }
+        });
 
-      const contentType = mediaResponse.headers["content-type"] || "image/jpeg";
+        const contentType = mediaResponse.headers["content-type"] || "image/jpeg";
 
-      form.append("foto", mediaResponse.data, {
-        filename: "reporte.jpg",
-        contentType
-      });
+        //  Convertir a buffer
+        const buffer = Buffer.from(mediaResponse.data, "binary");
+
+        form.append("foto_whatsapp", buffer, {
+          filename: "reporte.jpg",
+          contentType
+        });
+  
 
       console.log("✅ Imagen adjuntada correctamente");
 
@@ -459,7 +458,7 @@ async function enviarReporteNew(user) {
     });
 
     return response;
-
+ }
   } catch (error) {
     console.error("❌ Error enviando reporte");
 
@@ -468,7 +467,8 @@ async function enviarReporteNew(user) {
     console.error("data:", error.response?.data);
 
     throw error; // 🔥 importante para que tu controller lo capture
-  }
+ 
+   }
 }
 
 async function enviarReporte(user) {
