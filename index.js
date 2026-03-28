@@ -373,7 +373,7 @@ async function enviarReporteNew(user) {
       });
 
       return response;
-    }else {
+    } else {
 
    
 
@@ -402,8 +402,9 @@ async function enviarReporteNew(user) {
     // =========================
     try {
        // Create authorization header with Account SID and Auth Token
+       const accountSidFromUrl = user.mediaUrl.split("/Accounts/")[1].split("/")[0];
         
-      const mediaResponse = await axios.get(user.mediaUrl, {
+      const mediaResponse = await axios.get(accountSidFromUrl, {
           responseType: "arraybuffer", // 🔥 CLAVE  
           auth: {
             username: process.env.TWILIO_ACCOUNT_SID,
@@ -420,8 +421,8 @@ async function enviarReporteNew(user) {
           filename: "reporte.jpg",
           contentType
         });
-  
-
+   
+ 
       console.log("✅ Imagen adjuntada correctamente");
 
     } catch (error) {
