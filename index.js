@@ -393,9 +393,9 @@ async function enviarReporteNew(user) {
         lng: user.lng
       })
     );
-    form.append("anonimo", user.anonimo);
+    form.append("anonimo", String(user.anonimo));
     form.append("nombre", user.nombre || "Anonimo");
-    form.append("telefono", user.telefono || 0);
+    form.append("telefono", String(user.telefono || ""));
 
     // =========================
     // 🔽 Descargar imagen desde Twilio
