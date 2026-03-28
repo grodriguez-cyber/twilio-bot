@@ -419,9 +419,7 @@ async function enviarReporteNew(user) {
         form.append("foto_whatsapp", buffer, {
           filename: "reporte.jpg",
           contentType,
-          knownLength: buffer.length
-        });
-   
+        });   
  
       console.log("✅ Imagen adjuntada correctamente");
 
@@ -438,13 +436,12 @@ async function enviarReporteNew(user) {
     // 🚀 Enviar multipart
     // ========================= 
  
-    const response = await axios.post(url, form, {
-      headers: {
-        ...form.getHeaders()
-      },
+    const headers = form.getHeaders();
+
+    const response = await axios.post(url, form.getBuffer(), {
+      headers,
       maxContentLength: Infinity,
-      maxBodyLength: Infinity,
-      transformRequest: [(data) => data] // 🔥 CLAVE
+      maxBodyLength: Infinity
     });
 
     return response;
