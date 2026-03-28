@@ -282,9 +282,8 @@ ${opciones}`;
       if (cmd === "a") {
         try {
           console.log("USER DATA:", user);
-          console.log("NumMedia:", req.body.NumMedia);
-          console.log("MediaUrl:", req.body.MediaUrl0);
-          const response = await enviarReporte(user);
+         // const response = await enviarReporte(user);
+          const response = await enviarReporteNew(user);
           console.log("Reporte enviado, respuesta:", response.data);
           const folio = response.data.folio || `XAL-${Date.now()}`;
     
@@ -358,7 +357,7 @@ async function enviarReporteNew(user) {
     // =========================
     // 🧠 CASO 1: SIN IMAGEN → JSON
     // =========================
-    if (!user.foto || !user.mediaUrl) {
+    if (!user.foto ) {
       console.log("📭 Enviando reporte SIN imagen");
 
       const response = await axios.post(url, {
@@ -402,11 +401,7 @@ async function enviarReporteNew(user) {
     try {
        // Create authorization header with Account SID and Auth Token
        const authHeader = 'Basic ' + Buffer.from(`${process.env.TWILIO_ACCOUNT_SID}:${process.env.TWILIO_AUTH_TOKEN}`).toString('base64');
-       const response = await fetch(mediaUrl, {
-         headers: {
-           'Authorization': authHeader
-         }
-       });
+      
        const mediaResponse = await fetch(user.mediaUrl, {
         headers: {
           'Authorization': authHeader
