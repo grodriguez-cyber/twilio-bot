@@ -401,11 +401,10 @@ async function enviarReporteNew(user) {
     // 🔽 Descargar imagen desde Twilio
     // =========================
     try {
-       // Create authorization header with Account SID and Auth Token
-       const accountSidFromUrl = user.mediaUrl.split("/Accounts/")[1].split("/")[0];
+       // Create authorization header with Account SID and Auth Token 
         
-      const mediaResponse = await axios.get(accountSidFromUrl, {
-          responseType: "arraybuffer", // 🔥 CLAVE  
+      const mediaResponse = await axios.get(user.mediaUrl, {
+          responseType: "arraybuffer",  
           auth: {
             username: process.env.TWILIO_ACCOUNT_SID,
             password: process.env.TWILIO_AUTH_TOKEN
