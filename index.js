@@ -351,7 +351,8 @@ function send(res, text) {
 }
  
 async function enviarReporteNew(user) {
-  const url = "https://138.201.173.117.nip.io/api/reports/whatsapp_new";
+  const url = "https://138.201.173.117.nip.io/api/reports/whatsapp";
+  const url_foto = "https://138.201.173.117.nip.io/api/reports/whatsapp_foto";
 
   try {
     // =========================
@@ -438,7 +439,7 @@ async function enviarReporteNew(user) {
  
     const headers = form.getHeaders();
 
-    const response = await axios.post(url, form.getBuffer(), {
+    const response = await axios.post(url_foto, form.getBuffer(), {
       headers,
       maxContentLength: Infinity,
       maxBodyLength: Infinity
@@ -458,17 +459,5 @@ async function enviarReporteNew(user) {
    }
 }
 
-async function enviarReporte(user) {
-  return axios.post("https://138.201.173.117.nip.io/api/reports/whatsapp", {
-    categoria: Number(user.categoriaID),
-    detalle: user.detalle,
-    ubicacion: {
-      lat: user.lat,
-      lng: user.lng
-    },
-    anonimo: user.anonimo,
-    nombre: user.nombre || "Anonimo",
-    telefono: user.telefono || 0,
-  });
-}
+ 
 app.listen(process.env.PORT || 3000);
