@@ -3,7 +3,9 @@ const bodyParser = require("body-parser");
 const { MessagingResponse } = require("twilio").twiml;
 const axios = require("axios");
 const app = express();
+
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use(express.static("public"));
 const FormData = require("form-data");
 const sessions = {};
 
@@ -92,13 +94,21 @@ app.post("/whatsapp", async (req, res) => {
 
   if (cmd === "inicio") {
     sessions[from] = { step: 1 };
-  
-    reply = `👋 Hola!, soy tu ayuntamiento, para comenzar tu reportes contesta lo siguiente.
-  
-🅰️ Continuar
-🅱️ Salir`;
-  
-    return send(res, reply);
+
+    reply = `👋 Hola, soy Macui. Te ayudaré a generar tu reporte ciudadano.
+
+  Para iniciar, ayúdame respondiendo:
+
+  🅰️ Continuar
+  🅱️ Salir`;
+
+    const baseUrl =
+      process.env.PUBLIC_BASE_URL ||
+      `${req.get("x-forwarded-proto") || req.protocol}://${req.get("host")}`;
+
+    const macuiImageUrl = `${baseUrl}/images/macui_energie.png`;
+
+    return send(res, reply, macuiImageUrl);
   }
 
   if (cmd === "salir") {
@@ -106,14 +116,24 @@ app.post("/whatsapp", async (req, res) => {
     reply = "👋 Proceso cancelado. Escribe *inicio* para comenzar de nuevo.";
     return send(res, reply);
   }
-    
+
   if (user.step === 0) {
     user.step = 1;
-    reply = `👋 Hola, soy el bot de Reporte Ciudadano.
+
+    reply = `👋 Hola, soy Macui. Te ayudaré a generar tu reporte ciudadano.
+
+Para iniciar, ayúdame respondiendo:
 
 🅰️ Continuar
 🅱️ Salir`;
-    return send(res, reply);
+
+    const baseUrl =
+      process.env.PUBLIC_BASE_URL ||
+      `${req.get("x-forwarded-proto") || req.protocol}://${req.get("host")}`;
+
+    const macuiImageUrl = `${baseUrl}/images/macui_energie.png`;
+
+    return send(res, reply, macuiImageUrl);
   }
 
   // =======================
@@ -123,17 +143,33 @@ app.post("/whatsapp", async (req, res) => {
 
     // STATE 0 — WELCOME
     case 0:
-      reply = `👋 Hola, soy el bot de Reporte Ciudadano.
+      reply = `👋 Hola, soy Macui. Te ayudaré a generar tu reporte ciudadano.
+
+Para iniciar, ayúdame respondiendo:
 
 🅰️ Continuar
 🅱️ Salir`;
+
       user.step = 1;
-      break;
+
+      const baseUrl =
+        process.env.PUBLIC_BASE_URL ||
+        `${req.get("x-forwarded-proto") || req.protocol}://${req.get("host")}`;
+
+      const macuiImageUrl = `${baseUrl}/images/macui_energie.png`;
+
+      return send(res, reply, macuiImageUrl);
 
     // STATE 1 — CATEGORY
     case 1:
+      if (cmd === "b") {
+        delete sessions[from];
+        reply = "👋 Proceso cancelado. Escribe *INICIO* para comenzar de nuevo.";
+        return send(res, reply);
+      }
+
       if (cmd !== "a") {
-        reply = "❌ Escribe *A* para continuar o *SALIR*.";
+        reply = "❌ Responde *A* para continuar o *B* para salir.";
         break;
       }
 
@@ -156,7 +192,7 @@ E) Obra pública`;
 
       user.categoria = categorias[cmd];
       user.categoriaID = numCategorias[cmd];
-      reply = `📍 Envía tu ubicación actual.
+      reply = `📍 Envía la ubicación del problema.
 
 Presiona ➕ (iPhone) o 📎 (Android)
 Luego selecciona *Ubicación*`;
@@ -220,27 +256,27 @@ ${opciones}`;
       break;
 
     // STATE 6 — WAIT PHOTO
-   /* case 6:
+    /* case 6:
+       if (req.body.NumMedia > 0) {
+         user.foto = true;
+       }
+       reply = contactoPregunta();
+       user.step = 7;
+       break;
+ */
+    case 6:
+      console.log("NumMedia:", req.body.NumMedia);
+      console.log("MediaUrl0:", req.body.MediaUrl0);
+
       if (req.body.NumMedia > 0) {
         user.foto = true;
+        user.mediaUrl = req.body.MediaUrl0; // 🔥 FALTABA ESTO
+      } else {
+        user.foto = false;
       }
       reply = contactoPregunta();
       user.step = 7;
       break;
-*/
-      case 6:
-        console.log("NumMedia:", req.body.NumMedia);
-        console.log("MediaUrl0:", req.body.MediaUrl0);
-
-        if (req.body.NumMedia > 0) {
-          user.foto = true;
-          user.mediaUrl = req.body.MediaUrl0; // 🔥 FALTABA ESTO
-        } else {
-          user.foto = false;
-        }
-        reply = contactoPregunta();
-        user.step = 7;
-        break;
     // STATE 7 — CONTACT
     case 7:
       if (cmd === "a") {
@@ -282,15 +318,15 @@ ${opciones}`;
       if (cmd === "a") {
         try {
           console.log("USER DATA:", user);
-         // const response = await enviarReporte(user);
+          // const response = await enviarReporte(user);
           const response = await enviarReporteNew(user);
           console.log("Reporte enviado, respuesta:", response.data);
           const folio = response.data.folio || `XAL-${Date.now()}`;
-    
+
           reply = `✅ Reporte enviado correctamente.
-    
+
     🆔 Folio: ${folio}
-    
+
     Gracias por tu reporte.
     Escribe *INICIO* para crear otro.`;
         } catch (error) {
@@ -299,15 +335,15 @@ ${opciones}`;
           console.error("status:", error.response?.status);
           console.error("data:", error.response?.data);
           console.error("headers:", error.response?.headers);
-        
+
           reply = `❌ No se pudo registrar el reporte.
         Intenta nuevamente más tarde.`;
         }
-    
+
         delete sessions[from];
         break;
       }
-    
+
       reply = "❌ Proceso cancelado. Escribe *INICIO* para comenzar.";
       delete sessions[from];
       break;
@@ -344,12 +380,19 @@ function resumen(user) {
 A) Confirmar`;
 }
 
-function send(res, text) {
+function send(res, text, mediaUrl = null) {
   const twiml = new MessagingResponse();
-  twiml.message(text);
+  const message = twiml.message();
+
+  message.body(text);
+
+  if (mediaUrl) {
+    message.media(mediaUrl);
+  }
+
   res.type("text/xml").send(twiml.toString());
 }
- 
+
 async function enviarReporteNew(user) {
   const url = "https://138.201.173.117.nip.io/api/reports/whatsapp";
   const url_foto = "https://138.201.173.117.nip.io/api/reports/whatsapp_foto";
@@ -358,7 +401,7 @@ async function enviarReporteNew(user) {
     // =========================
     // 🧠 CASO 1: SIN IMAGEN → JSON
     // =========================
-    if (!user.foto ) {
+    if (!user.foto) {
       console.log("📭 Enviando reporte SIN imagen");
 
       const response = await axios.post(url, {
@@ -376,36 +419,36 @@ async function enviarReporteNew(user) {
       return response;
     } else {
 
-   
 
-    // =========================
-    // 📸 CASO 2: CON IMAGEN → multipart/form-data
-    // =========================
-    console.log("📸 Enviando reporte CON imagen");
 
-    const form = new FormData();
+      // =========================
+      // 📸 CASO 2: CON IMAGEN → multipart/form-data
+      // =========================
+      console.log("📸 Enviando reporte CON imagen");
 
-    form.append("categoria", Number(user.categoriaID));
-    form.append("detalle", user.detalle);
-    form.append(
-      "ubicacion",
-      JSON.stringify({
-        lat: user.lat,
-        lng: user.lng
-      })
-    );
-    form.append("anonimo", String(user.anonimo));
-    form.append("nombre", user.nombre || "Anonimo");
-    form.append("telefono", String(user.telefono || ""));
+      const form = new FormData();
 
-    // =========================
-    // 🔽 Descargar imagen desde Twilio
-    // =========================
-    try {
-       // Create authorization header with Account SID and Auth Token 
-        
-      const mediaResponse = await axios.get(user.mediaUrl, {
-          responseType: "arraybuffer",  
+      form.append("categoria", Number(user.categoriaID));
+      form.append("detalle", user.detalle);
+      form.append(
+        "ubicacion",
+        JSON.stringify({
+          lat: user.lat,
+          lng: user.lng
+        })
+      );
+      form.append("anonimo", String(user.anonimo));
+      form.append("nombre", user.nombre || "Anonimo");
+      form.append("telefono", String(user.telefono || ""));
+
+      // =========================
+      // 🔽 Descargar imagen desde Twilio
+      // =========================
+      try {
+        // Create authorization header with Account SID and Auth Token
+
+        const mediaResponse = await axios.get(user.mediaUrl, {
+          responseType: "arraybuffer",
           auth: {
             username: process.env.TWILIO_ACCOUNT_SID,
             password: process.env.TWILIO_AUTH_TOKEN
@@ -420,33 +463,33 @@ async function enviarReporteNew(user) {
         form.append("foto_whatsapp", buffer, {
           filename: "reporte.jpg",
           contentType,
-        });   
- 
-      console.log("✅ Imagen adjuntada correctamente");
+        });
 
-    } catch (error) {
-      console.error("⚠️ Error descargando imagen, se enviará sin foto");
+        console.log("✅ Imagen adjuntada correctamente");
 
-      console.error("message:", error.message);
-      console.error("status:", error.response?.status);
+      } catch (error) {
+        console.error("⚠️ Error descargando imagen, se enviará sin foto");
 
-      
+        console.error("message:", error.message);
+        console.error("status:", error.response?.status);
+
+
+      }
+
+      // =========================
+      // 🚀 Enviar multipart
+      // =========================
+
+      const headers = form.getHeaders();
+
+      const response = await axios.post(url_foto, form.getBuffer(), {
+        headers,
+        maxContentLength: Infinity,
+        maxBodyLength: Infinity
+      });
+
+      return response;
     }
-
-    // =========================
-    // 🚀 Enviar multipart
-    // ========================= 
- 
-    const headers = form.getHeaders();
-
-    const response = await axios.post(url_foto, form.getBuffer(), {
-      headers,
-      maxContentLength: Infinity,
-      maxBodyLength: Infinity
-    });
-
-    return response;
- }
   } catch (error) {
     console.error("❌ Error enviando reporte");
 
@@ -455,9 +498,9 @@ async function enviarReporteNew(user) {
     console.error("data:", error.response?.data);
 
     throw error; // 🔥 importante para que tu controller lo capture
- 
-   }
+
+  }
 }
 
- 
+
 app.listen(process.env.PORT || 3000);
