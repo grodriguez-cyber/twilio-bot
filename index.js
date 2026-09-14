@@ -194,8 +194,11 @@ E) Obra pública`;
       user.categoriaID = numCategorias[cmd];
       reply = `📍 Envía la ubicación del problema.
 
-Presiona ➕ (iPhone) o 📎 (Android)
-Luego selecciona *Ubicación*`;
+Presiona ➕ (iPhone) o 📎 (Android) y selecciona *Ubicación*.
+
+🗺️ Si el problema se encuentra en otro lugar, abre el mapa en pantalla completa, mueve el pin hasta el punto exacto y selecciona *Enviar esta ubicación*.
+
+⚠️ Usa *Enviar mi ubicación actual* únicamente si te encuentras justo en el lugar del problema.`;
       user.step = 3;
       break;
 
